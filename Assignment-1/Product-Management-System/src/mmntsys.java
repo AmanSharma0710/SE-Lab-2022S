@@ -24,6 +24,16 @@ class manufacturer extends entity{
         this.products = new HashSet<product>();
     }
 
+    void printManufacturer(Boolean printProducts){
+        super.printEntity();
+        if(!printProducts)
+            return;
+        System.out.println("Products: ");
+        for(product p: this.products){
+            p.printProduct(false);
+        }
+    }
+
     void addProduct(product p){
         if(p.m != this){
             System.out.println("Product already assigned to another manufacturer, do you want to change manufacturer? (y/n)");
@@ -102,6 +112,18 @@ class customer extends entity{
         this.purchases = new HashMap<product, Integer>();
     }
 
+    void printCustomer(Boolean printPurchases){
+        super.printEntity();
+        System.out.println("Zipcode: "+ this.zipcode);
+        if(!printPurchases)
+            return;
+        System.out.println("Purchases: ");
+        for(Map.Entry<product, Integer> entry : this.purchases.entrySet()){
+            entry.getKey().printProduct(false);
+            System.out.println("Quantity: "+ entry.getValue());
+        }
+    }
+
     void printPurchases(){
         System.out.println("Purchases: ");
         if(this.purchases.isEmpty()){
@@ -152,7 +174,8 @@ class shop extends entity{
             for(Map.Entry<product, Integer> entry : this.inventory.entrySet()){
                 //entry.getKey() is the product
                 //entry.getValue() is the quantity
-                System.out.println("Product: " + entry.getKey().name + " Quantity: " + entry.getValue());
+                entry.getKey().printProduct(true);
+                System.out.println("Quantity: " + entry.getValue());
             }
         }
     }
@@ -223,25 +246,200 @@ public class mmntsys{
     static Map<Integer, shop> shops = new HashMap<Integer, shop>();
     static Map<Integer, deliveryagent> deliveryagents = new HashMap<Integer, deliveryagent>();
 
-    void processOrder(order orderReceived){
+
+    static void addManufacturer(Scanner S, int id){
+        manufacturers.put(id, new manufacturer(S, id));
+    }
+    static void addProduct(Scanner S, int id){
+        products.put(id, new product(S, id));
+    }
+    static void addCustomer(Scanner S, int id){
+        customers.put(id, new customer(S, id));
+    }
+    static void addShop(Scanner S, int id){
+        shops.put(id, new shop(S, id));
+    }
+    static void addDeliveryagent(Scanner S, int id){
+        deliveryagents.put(id, new deliveryagent(S, id));
+    }
+
+    static void printManufacturers(){
+        System.out.println("Manufacturers: ");
+        if(manufacturers.isEmpty()){
+            System.out.println("No manufacturers");
+        }
+        else{
+            for(Map.Entry<Integer, manufacturer> entry : manufacturers.entrySet()){
+                //entry.getKey() is the ID
+                //entry.getValue() is the manufacturer
+                entry.getValue().printManufacturer(false);
+            }
+        }
+    }
+
+    static void printProducts(){
+        System.out.println("Products: ");
+        if(products.isEmpty()){
+            System.out.println("No products");
+        }
+        else{
+            for(Map.Entry<Integer, product> entry : products.entrySet()){
+                //entry.getKey() is the ID
+                //entry.getValue() is the product
+                entry.getValue().printProduct(false);
+            }
+        }
+    }
+
+    static void printCustomers(){
+        System.out.println("Customers: ");
+        if(customers.isEmpty()){
+            System.out.println("No customers");
+        }
+        else{
+            for(Map.Entry<Integer, customer> entry : customers.entrySet()){
+                //entry.getKey() is the ID
+                //entry.getValue() is the customer
+                entry.getValue().printCustomer(false);
+            }
+        }
+    }
+
+    static void printShops(){
+        System.out.println("Shops: ");
+        if(shops.isEmpty()){
+            System.out.println("No shops");
+        }
+        else{
+            for(Map.Entry<Integer, shop> entry : shops.entrySet()){
+                //entry.getKey() is the ID
+                //entry.getValue() is the shop
+                entry.getValue().printShop();
+            }
+        }
+    }
+
+    static void printDeliveryagents(){
+        System.out.println("Deliveryagents: ");
+        if(deliveryagents.isEmpty()){
+            System.out.println("No deliveryagents");
+        }
+        else{
+            for(Map.Entry<Integer, deliveryagent> entry : deliveryagents.entrySet()){
+                //entry.getKey() is the ID
+                //entry.getValue() is the deliveryagent
+                entry.getValue().printDeliveryagent();
+            }
+        }
+    }
+
+    static void deleteManufacturer(Scanner S){
+        printManufacturers();
+        System.out.println("Enter the ID of the manufacturer to delete: ");
+        int id = S.nextInt();
+        while(!manufacturers.containsKey(id)){
+            if(id==0){
+                return;
+            }
+            System.out.println(id + " is not a valid manufacturer ID");
+            System.out.println("Enter the ID of the manufacturer to delete(Enter 0 to exit): ");
+            id = S.nextInt();
+        }
+        manufacturer m = manufacturers.get(id);
+        for(product p : m.products){
+            p.m = null;
+        }
+        manufacturers.remove(id);
+    }
+
+    static void deleteProduct(Scanner S){
+        printProducts();
+        System.out.println("Enter the ID of the product to delete: ");
+        int id = S.nextInt();
+        while(!products.containsKey(id)){
+            if(id==0){
+                return;
+            }
+            System.out.println(id + " is not a valid product ID");
+            System.out.println("Enter the ID of the product to delete(Enter 0 to exit): ");
+            id = S.nextInt();
+        }
+        product p = products.get(id);
+        //remove product from manufacturer
+        p.m.products.remove(p);
+        products.remove(id);
+    }
+
+    static void deleteCustomer(Scanner S){
+        printCustomers();
+        System.out.println("Enter the ID of the customer to delete: ");
+        int id = S.nextInt();
+        while(!customers.containsKey(id)){
+            if(id==0){
+                return;
+            }
+            System.out.println(id + " is not a valid customer ID");
+            System.out.println("Enter the ID of the customer to delete(Enter 0 to exit): ");
+            id = S.nextInt();
+        }
+        customers.remove(id);
+    }
+
+    static void deleteShop(Scanner S){
+        printShops();
+        System.out.println("Enter the ID of the shop to delete: ");
+        int id = S.nextInt();
+        while(!shops.containsKey(id)){
+            if(id==0){
+                return;
+            }
+            System.out.println(id + " is not a valid shop ID");
+            System.out.println("Enter the ID of the shop to delete(Enter 0 to exit): ");
+            id = S.nextInt();
+        }
+        shops.remove(id);
+    }
+
+    static void deleteDeliveryagent(Scanner S){
+        printDeliveryagents();
+        System.out.println("Enter the ID of the deliveryagent to delete: ");
+        int id = S.nextInt();
+        while(!deliveryagents.containsKey(id)){
+            if(id==0){
+                return;
+            }
+            System.out.println(id + " is not a valid deliveryagent ID");
+            System.out.println("Enter the ID of the deliveryagent to delete(Enter 0 to exit): ");
+            id = S.nextInt();
+        }
+        deliveryagents.remove(id);
+    }
+
+    static void processOrder(order orderReceived){
         int zipcode = orderReceived.c.zipcode;
         shop shopDelivering = null;
+        Boolean available = false;
         for(Map.Entry<Integer, shop> entry : shops.entrySet()){
             //entry.getValue() is the shop
             if(entry.getValue().zipcode == zipcode){
                 if(entry.getValue().inventory.containsKey(orderReceived.productWanted)){
-                    //if the product is in the inventory of the shop, we deliver it
-                    shopDelivering = entry.getValue();
-                    break;
+                    available = true;
+                    //if the product is in the inventory of the shop and there is enough quantity, we deliver it
+                    if(entry.getValue().inventory.get(orderReceived.productWanted) >= orderReceived.quantity){
+                        shopDelivering = entry.getValue();
+                        break;
+                    }
                 }
             }
         }
-        if(shopDelivering == null){
+        if(!available){
             System.out.println("Product " + orderReceived.productWanted.name + " not available in any shop in zipcode " + zipcode);
+            System.out.println("Order not processed");
             return;
         }
-        if(shopDelivering.inventory.get(orderReceived.productWanted) < orderReceived.quantity){
-            System.out.println("Not enough products in the inventory of shop " + shopDelivering.name + " in zipcode " + zipcode);
+        if(shopDelivering == null){
+            System.out.println("Product " + orderReceived.productWanted.name + " not available in required quantity in any shop in zipcode " + zipcode);
+            System.out.println("Order not processed");
             return;
         }
         //we find a delivery agent that can deliver the product
@@ -259,13 +457,28 @@ public class mmntsys{
         }
         if(deliveryAgent == null){
             System.out.println("No delivery agent available in zipcode " + zipcode);
+            System.out.println("Order not processed");
             return;
         }
 
         //we deliver the product
+        //update the inventory of the shop
         shopDelivering.inventory.put(orderReceived.productWanted, shopDelivering.inventory.get(orderReceived.productWanted) - orderReceived.quantity);
+        if(shopDelivering.inventory.get(orderReceived.productWanted) == 0){
+            shopDelivering.inventory.remove(orderReceived.productWanted);
+        }
+        //update the products delivered of the delivery agent
         deliveryAgent.products_delivered += orderReceived.quantity;
+        //update the purchases of the customer
+        customer c = orderReceived.c;
+        if(c.purchases.containsKey(orderReceived.productWanted)){
+            c.purchases.put(orderReceived.productWanted, c.purchases.get(orderReceived.productWanted) + orderReceived.quantity);
+        }
+        else{
+            c.purchases.put(orderReceived.productWanted, orderReceived.quantity);
+        }
         System.out.println("Product " + orderReceived.productWanted.name + " delivered to customer " + orderReceived.c.name + " in zipcode " + zipcode);
+        System.out.println("Order processed");
     }
 
     public static void main(String[] args){
