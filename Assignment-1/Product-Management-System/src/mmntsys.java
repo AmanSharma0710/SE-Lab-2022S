@@ -1,16 +1,65 @@
 import java.util.*;
 
 class entity{
-    public int id;
-    private String name;
+    int id;
+    String name;
     public entity(Scanner S, int id){
         this.id = id;
-        System.out.println("Enter name: ");
+        System.out.println("Enter the name: ");
         this.name = S.nextLine();
     }
     public void printEntity(){
         System.out.println("ID: "+ this.id);
         System.out.println("Name: "+ this.name);
+    }
+}
+
+class manufacturer extends entity{
+    Set<product> products;          //contains the manufactured products
+    public manufacturer(Scanner S, int id){
+        super(S, id);
+        this.products = new HashSet<product>();
+    }
+}
+
+class product extends entity{
+    manufacturer m;
+    public product(Scanner S, int id){
+        super(S, id);
+        this.m = null;
+    }
+}
+
+class customer extends entity{
+    int zipcode;
+    Set<product> products;          //contains the purchased products
+    public customer(Scanner S, int id){
+        super(S, id);
+        System.out.println("Enter the zipcode: ");
+        this.zipcode = S.nextInt();
+        this.products = new HashSet<product>();
+    }
+}
+
+class shop extends entity{
+    int zipcode;
+    Map<product, Integer> inventory; //contains the inventory of the shop
+    public shop(Scanner S, int id){
+        super(S, id);
+        System.out.println("Enter the zipcode: ");
+        this.zipcode = S.nextInt();
+        this.inventory = new HashMap<product, Integer>();
+    }
+}
+
+class deliveryagent extends entity{
+    int zipcode;
+    int products_delivered;
+    public deliveryagent(Scanner S, int id){
+        super(S, id);
+        System.out.println("Enter the zipcode: ");
+        this.zipcode = S.nextInt();
+        this.products_delivered = 0;
     }
 }
 
