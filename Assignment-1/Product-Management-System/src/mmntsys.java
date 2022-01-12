@@ -400,21 +400,6 @@ public class mmntsys{
         shops.remove(id);
     }
 
-    static void deleteDeliveryagent(Scanner S){
-        printDeliveryagents();
-        System.out.println("Enter the ID of the deliveryagent to delete: ");
-        int id = S.nextInt();
-        while(!deliveryagents.containsKey(id)){
-            if(id==0){
-                return;
-            }
-            System.out.println(id + " is not a valid deliveryagent ID");
-            System.out.println("Enter the ID of the deliveryagent to delete(Enter 0 to exit): ");
-            id = S.nextInt();
-        }
-        deliveryagents.remove(id);
-    }
-
     static void processOrder(order orderReceived){
         int zipcode = orderReceived.c.zipcode;
         shop shopDelivering = null;
@@ -483,19 +468,46 @@ public class mmntsys{
 
     public static void main(String[] args){
         Scanner S = new Scanner(System.in);
-        int id = 1;
-        System.out.println("Enter number of entities: ");
-        int n = S.nextInt();
-        S.nextLine();
-        entity[] entities = new entity[n];
-        for(int i = 0; i < n; i++){
-            entities[i] = new entity(S, id);
-            id++;
+        char choice;
+        System.out.println("Welcome to the management system!");
+        while(true){
+            System.out.println("Enter 0 to exit");
+            System.out.println("Enter 1 to add an entity");
+            System.out.println("Enter 2 to delete an entity");
+            System.out.println("Enter 3 to print all entities of a type");
+            System.out.println("Enter 4 to add a product to a manufacturer(Product must already exist)");
+            System.out.println("Enter 5 to add copies of a product to a shop(Product must already exist)");
+            System.out.println("Enter 6 to place an order");
+            System.out.println("Enter 7 to list products made by a manufacturer");
+            System.out.println("Enter 8 to list all items available in a shop");
+            System.out.println("Enter 9 to list all purchases made by a customer");
+            choice = S.next().charAt(0);
+            if(choice == '0'){
+                break;
+            }
+            else if(choice == '1'){
+            }
+            else if(choice == '2'){
+            }
+            else if(choice == '3'){
+            }
+            else if(choice == '4'){
+            }
+            else if(choice == '5'){
+            }
+            else if(choice == '6'){
+            }
+            else if(choice == '7'){
+            }
+            else if(choice == '8'){
+            }
+            else if(choice == '9'){
+            }
+            else{
+                System.out.println("Invalid choice");
+            }
         }
-        for(int i = 0; i < n; i++){
-            System.out.println("\nEntity "+ (i+1));
-            entities[i].printEntity();
-        }
+
         S.close();
     }    
 }
