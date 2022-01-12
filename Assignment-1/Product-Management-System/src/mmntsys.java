@@ -5,7 +5,7 @@ class entity{
     String name;
     public entity(Scanner S, int id){
         this.id = id;
-        System.out.println("Enter the name: ");
+        System.out.print("Enter the name: ");
         this.name = S.nextLine();
     }
     public void printEntity(){
@@ -29,8 +29,12 @@ class manufacturer extends entity{
         if(!printProducts)
             return;
         System.out.println("Products: ");
-        for(product p: this.products){
-            p.printProduct(false);
+        if(this.products.size() == 0)
+            System.out.println("No products");
+        else{
+            for(product p: this.products){
+                p.printProduct(false);
+            }
         }
     }
 
@@ -56,6 +60,10 @@ class manufacturer extends entity{
 
     void listProducts(){
         System.out.println("Manufacturer: "+ this.name + " has the following products: ");
+        if(this.products.size() == 0){
+            System.out.println("No products");
+            return;
+        }
         for(product p: this.products){
             p.printProduct(false);
         }
@@ -87,8 +95,6 @@ class product extends entity{
 
 
     void deleteProduct(Map <Integer, shop> shops){
-        //TODO: delete the product from the main map
-
         if(this.m != null){
             this.m.products.remove(this);
         }
@@ -110,8 +116,9 @@ class customer extends entity{
 
     public customer(Scanner S, int id){
         super(S, id);
-        System.out.println("Enter the zipcode: ");
+        System.out.print("Enter the zipcode: ");
         this.zipcode = S.nextInt();
+        S.nextLine();
         this.purchases = new HashMap<product, Integer>();
     }
 
@@ -149,8 +156,9 @@ class shop extends entity{
 
     public shop(Scanner S, int id){
         super(S, id);
-        System.out.println("Enter the zipcode: ");
+        System.out.print("Enter the zipcode: ");
         this.zipcode = S.nextInt();
+        S.nextLine();
         this.inventory = new HashMap<product, Integer>();
     }
 
@@ -191,8 +199,9 @@ class deliveryagent extends entity{
     int products_delivered;
     public deliveryagent(Scanner S, int id){
         super(S, id);
-        System.out.println("Enter the zipcode: ");
+        System.out.print("Enter the zipcode: ");
         this.zipcode = S.nextInt();
+        S.nextLine();
         this.products_delivered = 0;
     }
     void printDeliveryagent(){
@@ -231,6 +240,7 @@ class order{
             quantity = S.nextInt();
         }
         this.quantity = quantity;
+        S.nextLine();
     }
 }
 
@@ -362,8 +372,7 @@ public class mmntsys{
             id = S.nextInt();
         }
         product p = products.get(id);
-        //remove product from manufacturer
-        p.m.products.remove(p);
+        p.deleteProduct(shops);
         products.remove(id);
     }
 
@@ -495,16 +504,27 @@ public class mmntsys{
         }
     }
 
+    static void printSeperator(Boolean large){
+        int max_length = 75;
+        if(large){
+            max_length = 150;
+        }
+        for(int i=0;i<max_length;i++){
+            System.out.print("_");
+        }
+        System.out.println();
+        return;
+    }
+
     public static void main(String[] args){
         Scanner S = new Scanner(System.in);
         int choice;
         int IDbeingAllocated = 1;
         System.out.println("Welcome to the management system!");
         while(true){
-            for(int i=0; i<150; i++){
-                System.out.print("_");
-            }
-            System.out.println();
+            System.out.println("Press Enter to continue");
+            S.nextLine();
+            printSeperator(true);
             String main_interface = "Enter 0 to exit the program\n" + 
             "Enter 1 to add an entity" + "\n" +
             "Enter 2 to delete an entity" + "\n" +
@@ -517,6 +537,7 @@ public class mmntsys{
             "Enter 9 to list all purchases made by a customer" + "\n" +
             "Enter your choice(0-9): ";
             choice = takeInput(S, main_interface, 0, 9);
+            printSeperator(false);
             //#######################################################################################################################################################
             //CHOICE 0
             //Exit the program
