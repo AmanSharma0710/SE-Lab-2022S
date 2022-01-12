@@ -211,16 +211,16 @@ class order{
     public order(Scanner S, Map<Integer, customer> customers, Map<Integer, product> products){
         System.out.println("Enter the customer ID: ");
         int id = S.nextInt();
-        if(!customers.containsKey(id)){
-            System.out.println(id + " is not a valid customer ID");
-            return;
+        while(!customers.containsKey(id)){
+            System.out.println("Customer not found, please enter a valid customer ID: ");
+            id = S.nextInt();
         }
         this.c = customers.get(id);
         System.out.println("Enter the ID of the product wanted: ");
         id = S.nextInt();
-        if(!products.containsKey(id)){
-            System.out.println(id + " is not a valid product ID");
-            return;
+        while(!products.containsKey(id)){
+            System.out.println("Product not found, please enter a valid product ID: ");
+            id = S.nextInt();
         }
         this.productWanted = products.get(id);
         System.out.println("Enter the quantity: ");
@@ -505,7 +505,7 @@ public class mmntsys{
                 System.out.print("_");
             }
             System.out.println();
-            String main_interface = "Enter 0 to exit\n" + 
+            String main_interface = "Enter 0 to exit the program\n" + 
             "Enter 1 to add an entity" + "\n" +
             "Enter 2 to delete an entity" + "\n" +
             "Enter 3 to print all entities of a type" + "\n" +
@@ -517,9 +517,15 @@ public class mmntsys{
             "Enter 9 to list all purchases made by a customer" + "\n" +
             "Enter your choice(0-9): ";
             choice = takeInput(S, main_interface, 0, 9);
+            //#######################################################################################################################################################
+            //CHOICE 0
+            //Exit the program
             if(choice == 0){
                 break;
             }
+            //#######################################################################################################################################################
+            //CHOICE 1
+            //Adding an entity
             else if(choice == 1){
                 int choice1 = takeInput(S, "Enter 0 to exit\nEnter 1 to add a manufacturer\nEnter 2 to add a customer\nEnter 3 to add a shop\nEnter 4 to add a product\nEnter 5 to add a delivery agent\nEnter your choice(0-5): ", 0, 5);
                 if(choice1 == 0){
@@ -527,21 +533,34 @@ public class mmntsys{
                 }
                 else if(choice1 == 1){
                     manufacturers.put(IDbeingAllocated, new manufacturer(S, IDbeingAllocated));
+                    System.out.println("Manufacturer added:");
+                    manufacturers.get(IDbeingAllocated).printManufacturer(false);
                 }
                 else if(choice1 == 2){
                     customers.put(IDbeingAllocated, new customer(S, IDbeingAllocated));
+                    System.out.println("Customer added:");
+                    customers.get(IDbeingAllocated).printCustomer(false);
                 }
                 else if(choice1 == 3){
                     shops.put(IDbeingAllocated, new shop(S, IDbeingAllocated));
+                    System.out.println("Shop added:");
+                    shops.get(IDbeingAllocated).printShop();
                 }
                 else if(choice1 == 4){
                     products.put(IDbeingAllocated, new product(S, IDbeingAllocated));
+                    System.out.println("Product added:");
+                    products.get(IDbeingAllocated).printProduct(false);
                 }
                 else if(choice1 == 5){
                     deliveryagents.put(IDbeingAllocated, new deliveryagent(S, IDbeingAllocated));
+                    System.out.println("Delivery agent added:");
+                    deliveryagents.get(IDbeingAllocated).printDeliveryagent();
                 }
                 IDbeingAllocated++;
             }
+            //#######################################################################################################################################################
+            //CHOICE 2
+            //Deleting an entity
             else if(choice == 2){
                 int choice2 = takeInput(S, "Enter 0 to exit\nEnter 1 to delete a manufacturer\nEnter 2 to delete a customer\nEnter 3 to delete a shop\nEnter 4 to delete a product\nEnter 5 to delete a delivery agent\nEnter your choice(0-5): ", 0, 5);
                 if(choice2 == 0){
@@ -563,7 +582,9 @@ public class mmntsys{
                     deleteDeliveryAgent(S);
                 }
             }
-
+            //#######################################################################################################################################################
+            //CHOICE 3
+            //Printing an entity
             else if(choice == 3){
                 int choice3 = takeInput(S, "Enter 0 to exit\nEnter 1 to print manufacturers\nEnter 2 to print customers\nEnter 3 to print shops\nEnter 4 to print products\nEnter 5 to print delivery agents\nEnter your choice(0-5): ", 0, 5);
                 if(choice3 == 0){
@@ -585,17 +606,170 @@ public class mmntsys{
                     printDeliveryAgents();
                 }
             }
+            //#######################################################################################################################################################
+            //CHOICE 4
+            //Add product to manufacturer
             else if(choice == 4){
+                int productID, manufacturerID;
+                System.out.println("Enter the product ID(0 to exit): ");
+                while(true){
+                    productID = S.nextInt();
+                    if(productID == 0){
+                        break;
+                    }
+                    if(products.get(productID)==null){
+                        System.out.println("Product with ID " + productID + " does not exist. Enter a valid product ID(0 to exit): ");
+                        continue;
+                    }
+                    break;
+                }
+                if(productID == 0){
+                    continue;
+                }
+                System.out.println("Enter the manufacturer ID(0 to exit): ");
+                while(true){
+                    manufacturerID = S.nextInt();
+                    if(manufacturerID == 0){
+                        break;
+                    }
+                    if(manufacturers.get(manufacturerID)==null){
+                        System.out.println("Manufacturer with ID " + manufacturerID + " does not exist. Enter a valid manufacturer ID(0 to exit): ");
+                        continue;
+                    }
+                    break;
+                }
+                if(manufacturerID == 0){
+                    continue;
+                }
+                manufacturers.get(manufacturerID).addProduct(products.get(productID));
+                System.out.println("Product added to manufacturer");
             }
+            //#######################################################################################################################################################
+            //CHOICE 5
+            //Add copies of product to shop
             else if(choice == 5){
+                int productID, shopID;
+                System.out.println("Enter the product ID(0 to exit): ");
+                while(true){
+                    productID = S.nextInt();
+                    if(productID == 0){
+                        break;
+                    }
+                    if(products.get(productID)==null){
+                        System.out.println("Product with ID " + productID + " does not exist. Enter a valid product ID(0 to exit): ");
+                        continue;
+                    }
+                    break;
+                }
+                if(productID == 0){
+                    continue;
+                }
+                System.out.println("Enter the shop ID(0 to exit): ");
+                while(true){
+                    shopID = S.nextInt();
+                    if(shopID == 0){
+                        break;
+                    }
+                    if(shops.get(shopID)==null){
+                        System.out.println("Shop with ID " + shopID + " does not exist. Enter a valid shop ID(0 to exit): ");
+                        continue;
+                    }
+                    break;
+                }
+                if(shopID == 0){
+                    continue;
+                }
+                System.out.println("Enter the number of copies(0 to exit): ");
+                while(true){
+                    int copies = S.nextInt();
+                    if(copies == 0){
+                        break;
+                    }
+                    if(copies < 0){
+                        System.out.println("Number of copies cannot be negative. Enter a valid number of copies(0 to exit): ");
+                        continue;
+                    }
+                    shops.get(shopID).addProduct(products.get(productID), copies);
+                    System.out.println("Product added to shop");
+                    break;
+                }
             }
+            //#######################################################################################################################################################
+            //CHOICE 6
+            //Place an order
             else if(choice == 6){
+                int choice6 = takeInput(S, "Enter 0 to exit\nEnter 1 to place an order\nEnter your choice(0-1): ", 0, 1);
+                if(choice6 == 0){
+                    continue;
+                }
+                order freshOrder = new order(S, customers, products);
+                processOrder(freshOrder);
             }
+            //#######################################################################################################################################################
+            //CHOICE 7
+            //List products made by manufacturer
             else if(choice == 7){
+                int manufacturerID;
+                System.out.println("Enter the manufacturer ID(0 to exit): ");
+                while(true){
+                    manufacturerID = S.nextInt();
+                    if(manufacturerID == 0){
+                        break;
+                    }
+                    if(manufacturers.get(manufacturerID)==null){
+                        System.out.println("Manufacturer with ID " + manufacturerID + " does not exist. Enter a valid manufacturer ID(0 to exit): ");
+                        continue;
+                    }
+                    break;
+                }
+                if(manufacturerID == 0){
+                    continue;
+                }
+                manufacturers.get(manufacturerID).listProducts();
             }
+            //#######################################################################################################################################################
+            //CHOICE 8
+            //List shop inventory
             else if(choice == 8){
+                int shopID;
+                System.out.println("Enter the shop ID(0 to exit): ");
+                while(true){
+                    shopID = S.nextInt();
+                    if(shopID == 0){
+                        break;
+                    }
+                    if(shops.get(shopID)==null){
+                        System.out.println("Shop with ID " + shopID + " does not exist. Enter a valid shop ID(0 to exit): ");
+                        continue;
+                    }
+                    break;
+                }
+                if(shopID == 0){
+                    continue;
+                }
+                shops.get(shopID).printInventory();
             }
+            //#######################################################################################################################################################
+            //CHOICE 9
+            //List purchases made by a customer
             else if(choice == 9){
+                int customerID;
+                System.out.println("Enter the customer ID(0 to exit): ");
+                while(true){
+                    customerID = S.nextInt();
+                    if(customerID == 0){
+                        break;
+                    }
+                    if(customers.get(customerID)==null){
+                        System.out.println("Customer with ID " + customerID + " does not exist. Enter a valid customer ID(0 to exit): ");
+                        continue;
+                    }
+                    break;
+                }
+                if(customerID == 0){
+                    continue;
+                }
+                customers.get(customerID).printPurchases();
             }
         }
 
