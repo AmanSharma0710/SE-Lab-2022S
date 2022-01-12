@@ -35,6 +35,9 @@ class manufacturer extends entity{
     }
 
     void addProduct(product p){
+        if(p.m == null){
+            p.m = this;
+        }
         if(p.m != this){
             System.out.println("Product already assigned to another manufacturer, do you want to change manufacturer? (y/n)");
             Scanner reader = new Scanner(System.in);
@@ -192,12 +195,6 @@ class deliveryagent extends entity{
         this.zipcode = S.nextInt();
         this.products_delivered = 0;
     }
-    int getZipcode(){
-        return this.zipcode;
-    }
-    int getProductsDelivered(){
-        return this.products_delivered;
-    }
     void printDeliveryagent(){
         super.printEntity();
         System.out.println("Zipcode: " + this.zipcode);
@@ -319,7 +316,7 @@ public class mmntsys{
         }
     }
 
-    static void printDeliveryagents(){
+    static void printDeliveryAgents(){
         System.out.println("Deliveryagents: ");
         if(deliveryagents.isEmpty()){
             System.out.println("No deliveryagents");
@@ -400,6 +397,21 @@ public class mmntsys{
         shops.remove(id);
     }
 
+    static void deleteDeliveryAgent(Scanner S){
+        printDeliveryAgents();
+        System.out.println("Enter the ID of the deliveryagent to delete: ");
+        int id = S.nextInt();
+        while(!deliveryagents.containsKey(id)){
+            if(id==0){
+                return;
+            }
+            System.out.println(id + " is not a valid deliveryagent ID");
+            System.out.println("Enter the ID of the deliveryagent to delete(Enter 0 to exit): ");
+            id = S.nextInt();
+        }
+        deliveryagents.remove(id);
+    }
+
     static void processOrder(order orderReceived){
         int zipcode = orderReceived.c.zipcode;
         shop shopDelivering = null;
@@ -435,7 +447,7 @@ public class mmntsys{
                 if(deliveryAgent==null){
                     deliveryAgent = entry.getValue();
                 }
-                else if(entry.getValue().getProductsDelivered() < deliveryAgent.getProductsDelivered()){
+                else if(entry.getValue().products_delivered < deliveryAgent.products_delivered){
                     deliveryAgent = entry.getValue();
                 }
             }
@@ -466,45 +478,124 @@ public class mmntsys{
         System.out.println("Order processed");
     }
 
+    static int takeInput(Scanner S, String message, int lower_bound, int upper_bound){
+        System.out.println(message);
+        while(true){
+            String input = S.nextLine();
+            if(input.length()!=1){
+                System.out.println("Invalid input");
+                continue;
+            }
+            int input_int = input.charAt(0)-'0';
+            if(input_int<lower_bound || input_int>upper_bound){
+                System.out.println("Invalid input");
+                continue;
+            }
+            return input_int;
+        }
+    }
+
     public static void main(String[] args){
         Scanner S = new Scanner(System.in);
-        char choice;
+        int choice;
+        int IDbeingAllocated = 1;
         System.out.println("Welcome to the management system!");
         while(true){
-            System.out.println("Enter 0 to exit");
-            System.out.println("Enter 1 to add an entity");
-            System.out.println("Enter 2 to delete an entity");
-            System.out.println("Enter 3 to print all entities of a type");
-            System.out.println("Enter 4 to add a product to a manufacturer(Product must already exist)");
-            System.out.println("Enter 5 to add copies of a product to a shop(Product must already exist)");
-            System.out.println("Enter 6 to place an order");
-            System.out.println("Enter 7 to list products made by a manufacturer");
-            System.out.println("Enter 8 to list all items available in a shop");
-            System.out.println("Enter 9 to list all purchases made by a customer");
-            choice = S.next().charAt(0);
-            if(choice == '0'){
+            for(int i=0; i<150; i++){
+                System.out.print("_");
+            }
+            System.out.println();
+            String main_interface = "Enter 0 to exit\n" + 
+            "Enter 1 to add an entity" + "\n" +
+            "Enter 2 to delete an entity" + "\n" +
+            "Enter 3 to print all entities of a type" + "\n" +
+            "Enter 4 to add a product to a manufacturer(Product and manufacturer must already exist)" + "\n" +
+            "Enter 5 to add copies of a product to a shop(Product and shop must already exist)" + "\n" +
+            "Enter 6 to place an order" + "\n" +
+            "Enter 7 to list products made by a manufacturer" + "\n" +
+            "Enter 8 to list all items available in a shop" + "\n" +
+            "Enter 9 to list all purchases made by a customer" + "\n" +
+            "Enter your choice(0-9): ";
+            choice = takeInput(S, main_interface, 0, 9);
+            if(choice == 0){
                 break;
             }
-            else if(choice == '1'){
+            else if(choice == 1){
+                int choice1 = takeInput(S, "Enter 0 to exit\nEnter 1 to add a manufacturer\nEnter 2 to add a customer\nEnter 3 to add a shop\nEnter 4 to add a product\nEnter 5 to add a delivery agent\nEnter your choice(0-5): ", 0, 5);
+                if(choice1 == 0){
+                    continue;
+                }
+                else if(choice1 == 1){
+                    manufacturers.put(IDbeingAllocated, new manufacturer(S, IDbeingAllocated));
+                }
+                else if(choice1 == 2){
+                    customers.put(IDbeingAllocated, new customer(S, IDbeingAllocated));
+                }
+                else if(choice1 == 3){
+                    shops.put(IDbeingAllocated, new shop(S, IDbeingAllocated));
+                }
+                else if(choice1 == 4){
+                    products.put(IDbeingAllocated, new product(S, IDbeingAllocated));
+                }
+                else if(choice1 == 5){
+                    deliveryagents.put(IDbeingAllocated, new deliveryagent(S, IDbeingAllocated));
+                }
+                IDbeingAllocated++;
             }
-            else if(choice == '2'){
+            else if(choice == 2){
+                int choice2 = takeInput(S, "Enter 0 to exit\nEnter 1 to delete a manufacturer\nEnter 2 to delete a customer\nEnter 3 to delete a shop\nEnter 4 to delete a product\nEnter 5 to delete a delivery agent\nEnter your choice(0-5): ", 0, 5);
+                if(choice2 == 0){
+                    continue;
+                }
+                else if(choice2 == 1){
+                    deleteManufacturer(S);
+                }
+                else if(choice2 == 2){
+                    deleteCustomer(S);
+                }
+                else if(choice2 == 3){
+                    deleteShop(S);
+                }
+                else if(choice2 == 4){
+                    deleteProduct(S);
+                }
+                else if(choice2 == 5){
+                    deleteDeliveryAgent(S);
+                }
             }
-            else if(choice == '3'){
+
+            else if(choice == 3){
+                int choice3 = takeInput(S, "Enter 0 to exit\nEnter 1 to print manufacturers\nEnter 2 to print customers\nEnter 3 to print shops\nEnter 4 to print products\nEnter 5 to print delivery agents\nEnter your choice(0-5): ", 0, 5);
+                if(choice3 == 0){
+                    continue;
+                }
+                else if(choice3 == 1){
+                    printManufacturers();
+                }
+                else if(choice3 == 2){
+                    printCustomers();
+                }
+                else if(choice3 == 3){
+                    printShops();
+                }
+                else if(choice3 == 4){
+                    printProducts();
+                }
+                else if(choice3 == 5){
+                    printDeliveryAgents();
+                }
             }
-            else if(choice == '4'){
+            else if(choice == 4){
             }
-            else if(choice == '5'){
+            else if(choice == 5){
             }
-            else if(choice == '6'){
+            else if(choice == 6){
             }
-            else if(choice == '7'){
+            else if(choice == 7){
             }
-            else if(choice == '8'){
+            else if(choice == 8){
             }
-            else if(choice == '9'){
-            }
-            else{
-                System.out.println("Invalid choice");
+            else if(choice == 9){
             }
         }
 
