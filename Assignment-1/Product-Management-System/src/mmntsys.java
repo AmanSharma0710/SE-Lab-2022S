@@ -1,5 +1,8 @@
 import java.util.*;
 
+
+//Super class entity that all other classes inherit from
+//Contains: unique ID and name
 class entity{
     int id;
     String name;
@@ -15,7 +18,7 @@ class entity{
 }
 
 
-
+//Class that represents a manufacturer
 class manufacturer extends entity{
     Set<product> products;          //contains the manufactured products
 
@@ -24,6 +27,8 @@ class manufacturer extends entity{
         this.products = new HashSet<product>();
     }
 
+    //Prints all the details for a manufacturer
+    //Whether you want products to be printed or not can be passed to the function
     void printManufacturer(Boolean printProducts){
         super.printEntity();
         if(!printProducts)
@@ -38,6 +43,8 @@ class manufacturer extends entity{
         }
     }
 
+
+    //Adds a product to the manufacturer's list of products
     void addProduct(product p){
         if(p.m == null){
             p.m = this;
@@ -58,6 +65,7 @@ class manufacturer extends entity{
         this.products.add(p);           //add the product to the manufacturer
     }
 
+    //Prints all the products of a manufacturer
     void listProducts(){
         System.out.println("Manufacturer "+ this.name + " has the following products: ");
         if(this.products.size() == 0){
@@ -71,7 +79,8 @@ class manufacturer extends entity{
 }
 
 
-
+//Class that represents a product
+//Each product has a unique manufacturer m
 class product extends entity{
     manufacturer m;
 
@@ -80,6 +89,7 @@ class product extends entity{
         this.m = null;
     }
 
+    //Prints the details of a product
     void printProduct(Boolean printManufacturer){
         super.printEntity();
         if(!printManufacturer){
@@ -93,7 +103,7 @@ class product extends entity{
         }
     }
 
-
+    //Deletes product from everywhere but leaves it in the database and the customers cart
     void deleteProduct(Map <Integer, shop> shops){
         if(this.m != null){
             this.m.products.remove(this);
@@ -109,7 +119,7 @@ class product extends entity{
 }
 
 
-
+//Class that represents a customer
 class customer extends entity{
     int zipcode;
     Map<product, Integer> purchases;          //contains the purchased products
@@ -149,7 +159,8 @@ class customer extends entity{
 }
 
 
-
+//Class representing shops and warehouses
+//Maintains inventory of the shop as well as supports adding products in any quantity to the inventory
 class shop extends entity{
     int zipcode;
     Map<product, Integer> inventory; //contains the inventory of the shop
@@ -193,7 +204,7 @@ class shop extends entity{
 }
 
 
-
+//Class that represents a delivery agent
 class deliveryagent extends entity{
     int zipcode;
     int products_delivered;
@@ -211,7 +222,7 @@ class deliveryagent extends entity{
     }
 }
 
-
+//Class that represents an order
 class order{
     customer c;
     product productWanted;
@@ -234,8 +245,9 @@ class order{
 
 
 public class mmntsys{
-    
+    //We store everything in hashmaps
     //All hashmaps store entities by their ID
+    //{Key, Value}::{ID, Entity}
     static Map<Integer, manufacturer> manufacturers = new HashMap<Integer, manufacturer>();
     static Map<Integer, product> products = new HashMap<Integer, product>();
     static Map<Integer, customer> customers = new HashMap<Integer, customer>();
@@ -243,6 +255,8 @@ public class mmntsys{
     static Map<Integer, deliveryagent> deliveryagents = new HashMap<Integer, deliveryagent>();
 
 
+    //The following 5 methods call the inbuilt class methods on our stored entities
+    //They add the entity to the corresponding hashmap
     static void addManufacturer(Scanner S, int id){
         manufacturers.put(id, new manufacturer(S, id));
     }
@@ -259,6 +273,8 @@ public class mmntsys{
         deliveryagents.put(id, new deliveryagent(S, id));
     }
 
+
+    //They print the details of the entity
     static void printManufacturers(){
         System.out.println("Manufacturers: ");
         if(manufacturers.isEmpty()){
@@ -329,6 +345,9 @@ public class mmntsys{
         }
     }
 
+
+    //The following 5 methods are used to delete entities
+    //They get the ID of the entity to be deleted and then delete it
     static void deleteManufacturer(Scanner S){
         printManufacturers();
         int id = getManufacturerID(S);
@@ -381,6 +400,7 @@ public class mmntsys{
         int zipcode = orderReceived.c.zipcode;
         shop shopDelivering = null;
         Boolean available = false;
+        //If product in required quantity is available in any shop in the pincode of the customer we get it from that shop otherwise print that order cant be processed
         for(Map.Entry<Integer, shop> entry : shops.entrySet()){
             //entry.getValue() is the shop
             if(entry.getValue().zipcode == zipcode){
@@ -417,6 +437,7 @@ public class mmntsys{
                 }
             }
         }
+        //If no delivery agent is available in the pincode
         if(deliveryAgent == null){
             System.out.println("No delivery agent available in zipcode " + zipcode);
             System.out.println("Order not processed");
@@ -431,6 +452,10 @@ public class mmntsys{
         }
         //update the products delivered of the delivery agent
         deliveryAgent.products_delivered += orderReceived.quantity;
+        //comment the above line and
+        //uncomment the below line if you want each order to count as a single delivery
+        //deliveryAgent.products_delivered++;
+
         //update the purchases of the customer
         customer c = orderReceived.c;
         if(c.purchases.containsKey(orderReceived.productWanted)){
@@ -443,6 +468,7 @@ public class mmntsys{
         System.out.println("Order processed");
     }
 
+    //Helper function that takes in and returns a single digit integer from lower bound to upper bound else asks the user to enter again
     static int takeInput(Scanner S, String message, int lower_bound, int upper_bound){
         System.out.println(message);
         while(true){
@@ -460,6 +486,7 @@ public class mmntsys{
         }
     }
 
+    //Print a seperator for more organised output
     static void printSeperator(Boolean large){
         int max_length = 75;
         if(large){
@@ -472,6 +499,9 @@ public class mmntsys{
         return;
     }
 
+    //The following 5 functions are used to get the ID of the object that the user wants to enter
+    //The function takes in a Scanner object and returns the ID of the object that the user wants to enter
+    //It asks the user to enter again if the ID is invalid
     static int getProductID(Scanner S){
         System.out.println("Enter the ID of the product(0 to exit): ");
         int id = S.nextInt();
@@ -551,8 +581,17 @@ public class mmntsys{
     public static void main(String[] args){
         Scanner S = new Scanner(System.in);
         int choice;
+        //IDs are alloted sequentially automatically to avoid collisions
+        //Alternative implementation would be to maintain a set of already alloted IDs and everytime ask the user to enter one and check the set
+        //Can be implemented using hashset or a normal binary tree based implementation of set with log(N) or better time complexity
         int IDbeingAllocated = 1;
+
+        //Welcome message
         System.out.println("Welcome to the management system!");
+
+        //Main menu that gives the user options to choose from and leads to submenus
+        //The main menu is a loop that keeps on running until the user enters 0
+        //Every choice in the main menu can be reversed from the submenu by entering 0 in the submenu so that accidental input is not a problem
         while(true){
             System.out.println("Press Enter to continue");
             S.nextLine();
