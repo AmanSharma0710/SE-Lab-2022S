@@ -4,8 +4,32 @@
 using namespace std;
 using namespace rapidxml;
 
+static double LARGE_DOUBLE = 1e10;
+static double PI = 3.14159265358979323846;
+static double RADIUS_EARTH = 6372797.56085;
+//static double RADIUS_EARTH = 6371000; // for WGS84(GPS)
+static double DEGREE_TO_RADIAN = PI / 180;
+
+//Calculates haversine distance between the two points given latitude and longitude in degrees
+//Returns distance in meters
+//https://en.wikipedia.org/wiki/Haversine_formula
+//Function inspired by: https://stackoverflow.com/questions/27126714/c-latitude-and-longitude-distance-calculator/63767823
+double distance_calculator(double lat_a, double lon_a, double lat_b, double lon_b){
+    double  lat_b_radians = lat_b * DEGREE_TO_RADIAN;
+    double  lat_a_radians = lat_a * DEGREE_TO_RADIAN;
+    double  lat_diff = (lat_a-lat_b) * DEGREE_TO_RADIAN;
+    double  lng_diff = (lon_a-lon_b) * DEGREE_TO_RADIAN;
+
+    double  a = sin(lat_diff/2) * sin(lat_diff/2) + cos(lat_b_radians) * cos(lat_a_radians) * sin(lng_diff/2) * sin(lng_diff/2);
+    double  c = 2 * atan2(sqrt(a), sqrt(1-a));
+
+    double  distance = RADIUS_EARTH * c;
+    
+    return distance;
+}
+
 class node{
-public:
+    public:
     long long int id;
     double lat;
     double lon;
@@ -24,8 +48,23 @@ public:
     }
 };
 
+class way{
+    public:
+    long long int id;
+    vector<long long int> nodeIDs;
+    way(){
+        id = 0;
+        nodeIDs = vector<long long int>();
+    }
+    way(long long int id){
+        this->id = id;
+        this->nodeIDs = vector<long long int>();
+    }
+};
+
 xml_document<> doc;
 xml_node<> * osm_root = NULL;
+vector<vector<pair<int, double>>> adj;
    
 int main(){
 
@@ -33,10 +72,10 @@ int main(){
     vector<pair<string, long long int>> name_id_map;
     //nodes contains information about all the nodes in the map
     vector<node> nodes;
+    //ways contains information about all the ways in the map
+    vector<way> ways;
     //index_map contains the index of the node in the nodes vector
     map<long long int, int> index_map;
-
-    int no_ways=0;
 
 
     //READING AND PARSING THE OSM FILE
@@ -85,13 +124,34 @@ int main(){
             }
         }
         else if (student_node->name() == string("way")){
-            no_ways++;
+            long long int id = stoll(student_node->first_attribute("id")->value());
+            ways.push_back(way(id));
+            for(xml_node<> * nd = student_node->first_node("nd"); nd; nd = nd->next_sibling()){
+                if(nd->name()!=string("nd")){
+                    continue;
+                }
+                //we add the node id to the way
+                ways.back().nodeIDs.push_back(stoll(nd->first_attribute("ref")->value()));
+            }
         }
     }
     cout<<"Total number of nodes: "<<nodes.size()<<endl;
-    cout<<"Total number of ways: "<<no_ways<<endl;
+    cout<<"Total number of ways: "<<ways.size()<<endl;
 
 
+    //CREATING THE ADJACENCY LIST
+    cout<<"Creating the adjacency list...\n";
+    adj.assign(nodes.size(), vector<pair<int, double>>());
+    for(int i=0; i<ways.size(); i++){
+        for(int j=0; j<(int)ways[i].nodeIDs.size() - 1 ; j++){
+            int index1 = index_map[ways[i].nodeIDs[j]];
+            int index2 = index_map[ways[i].nodeIDs[j+1]];
+            double distance = distance_calculator(nodes[index_map[ways[i].nodeIDs[j]]].lat, nodes[index_map[ways[i].nodeIDs[j]]].lon, nodes[index_map[ways[i].nodeIDs[j+1]]].lat, nodes[index_map[ways[i].nodeIDs[j+1]]].lon);
+            adj[index1].push_back(make_pair(index2, distance));
+            adj[index2].push_back(make_pair(index1, distance));
+        }
+    }
+    cout<<"Adjacency list created.\n";
 
 
     while(true){
@@ -130,6 +190,120 @@ int main(){
                     cout<<"Longitude: "<<nodes[index_map[matches[i]]].lon<<endl;
                     cout<<"\n";
                 }
+            }
+        }
+        if(choice==2){
+            cout<<"Enter the ID of the place you want closest points from(Enter 0 to exit): ";
+            long long int id;
+            cin>>id;
+            while(index_map.find(id) == index_map.end() && id){
+                cout<<"Invalid ID. Please enter a valid ID.\n";
+                cin>>id;
+            }
+            if(!id){
+                continue;
+            }
+            cout<<"Enter the number of closest points you want to find: ";
+            int k;
+            cin>>k;
+            vector<pair<double, long long int>> distances;
+            for(int i=0;i<nodes.size();i++){
+                if(nodes[i].id != id){
+                    distances.push_back(make_pair(distance_calculator(nodes[index_map[id]].lat, nodes[index_map[id]].lon, nodes[i].lat, nodes[i].lon), nodes[i].id));
+                }
+            }
+            sort(distances.begin(), distances.end());
+            cout<<k<<" closest points are: "<<endl;
+            for(int i=0; i<k; i++){
+                cout<<i+1<<". ";
+                if(nodes[index_map[distances[i].second]].name != ""){
+                    cout<<"Name: "<<nodes[index_map[distances[i].second]].name<<endl;
+                }
+                cout<<"NodeID: "<<distances[i].second<<endl;
+                cout<<"Distance from the given place: "<<distances[i].first<<"meters"<<endl;
+                cout<<"Latitude: "<<nodes[index_map[distances[i].second]].lat<<endl;
+                cout<<"Longitude: "<<nodes[index_map[distances[i].second]].lon<<endl;
+                cout<<"\n";
+            }
+        }
+        if(choice==3){
+            cout<<"Enter the ID of the place you want to start from(Enter 0 to exit): ";
+            long long int id1;
+            cin>>id1;
+            while(index_map.find(id1) == index_map.end() && id1){
+                cout<<"Invalid ID. Please enter a valid ID.\n";
+                cin>>id1;
+            }
+            if(!id1){
+                continue;
+            }
+            cout<<"Enter the ID of the place you want to end at(Enter 0 to exit): ";
+            long long int id2;
+            cin>>id2;
+            while(index_map.find(id2) == index_map.end() && id2){
+                cout<<"Invalid ID. Please enter a valid ID.\n";
+                cin>>id2;
+            }
+            if(!id2){
+                continue;
+            }
+            if(id1 == id2){
+                cout<<"Start and end points are the same.\n";
+                continue;
+            }
+            int start_node = index_map[id1], end_node = index_map[id2];
+            vector<int> parent(nodes.size(), -1);
+            vector<double> distance(nodes.size(), LARGE_DOUBLE);
+            priority_queue<pair<double, int>, vector<pair<double, int>>, greater<pair<double, int>>> pq;
+            pq.push(make_pair(0.0, start_node));
+            distance[start_node] = 0.0;
+            while(!pq.empty()){
+                int closest_node = pq.top().second;
+                pq.pop();
+                if(closest_node == end_node){
+                    break;
+                }
+                for(int i=0;i<adj[closest_node].size();i++){
+                    if(distance[adj[closest_node][i].first] > distance[closest_node] + adj[closest_node][i].second){
+                        distance[adj[closest_node][i].first] = distance[closest_node] + adj[closest_node][i].second;
+                        parent[adj[closest_node][i].first] = closest_node;
+                        pq.push(make_pair(distance[adj[closest_node][i].first], adj[closest_node][i].first));
+                    }
+                }
+            }
+            if(distance[end_node] == LARGE_DOUBLE){
+                cout<<"No path found.\n";
+            }
+            else{
+                cout<<"Path found.\n";
+                cout<<"Distance: ";
+                if(distance[end_node] >= 1000){
+                    printf("%.4lf km\n", distance[end_node]/1000);
+                }
+                else{
+                    printf("%.4lf m\n", distance[end_node]);
+                }
+                vector<int> path;
+                path.push_back(end_node);
+                int curr_node = end_node;
+                while(curr_node != start_node){
+                    curr_node = parent[curr_node];
+                    path.push_back(curr_node);
+                }
+                reverse(path.begin(), path.end());
+                cout<<"Path: ";
+                for(int i=0; i<path.size(); i++){
+                    if(i){
+                        cout<<" -> ";
+                    }
+                    if(nodes[path[i]].name != ""){
+                        cout<<nodes[path[i]].name;
+                    }
+                    else{
+                        cout<<nodes[path[i]].id;
+                    }
+                }
+                cout<<endl;
             }
         }
     }
