@@ -28,19 +28,20 @@ double distance_calculator(double lat_a, double lon_a, double lat_b, double lon_
     return distance;
 }
 
+//Class for storing the information of a node
 class node{
     public:
     long long int id;
     double lat;
     double lon;
     string name;
-    node(){
+    node(){     //Default constructor
         id = 0;
         lat = 0;
         lon = 0;
         name = "";
     }
-    node(long long int id, double lat, double lon, string name){
+    node(long long int id, double lat, double lon, string name){        //Constructor
         this->id = id;
         this->lat = lat;
         this->lon = lon;
@@ -48,15 +49,16 @@ class node{
     }
 };
 
+//Class for storing the information of a way
 class way{
     public:
     long long int id;
     vector<long long int> nodeIDs;
-    way(){
+    way(){      //Default constructor
         id = 0;
         nodeIDs = vector<long long int>();
     }
-    way(long long int id){
+    way(long long int id){      //Constructor
         this->id = id;
         this->nodeIDs = vector<long long int>();
     }
@@ -64,7 +66,13 @@ class way{
 
 xml_document<> doc;
 xml_node<> * osm_root = NULL;
-vector<vector<pair<int, double>>> adj;
+vector<vector<pair<int, double>>> adj;      //Adjacency list of the graph, stores the nodeID and the distance between the two nodes
+
+
+//The nodes have unique IDs but they are not necessarily in order
+//We assign consecutive whole numbers to the nodes to make adjacence list easier to work with (i.e. nodeID = 0, nodeID = 1, nodeID = 2, ...)
+//The nodeIDnew can be used to access the node in the adjacency list and nodeIDnew can be used to access old nodeID from the nodes vector
+//NodeIDnew from old nodeID can be found using the index_map
    
 int main(){
 
@@ -91,18 +99,18 @@ int main(){
     // Find out the root node
     osm_root = doc.first_node("osm");
     // Iterate over all the child nodes of the root node and if they are nodes, increase the count of nodes and if they are ways, increase the count of ways
-    for (xml_node<> * student_node = osm_root->first_node(); student_node; student_node = student_node->next_sibling()){
-        if (student_node->name() == string("node")){
+    for (xml_node<> * child_node = osm_root->first_node(); child_node; child_node = child_node->next_sibling()){
+        if (child_node->name() == string("node")){
             //if node contains no tags, we add it to the node vector and continue
-            if(!student_node->first_node("tag")){
-                nodes.push_back(node(stoll(student_node->first_attribute("id")->value()), stod(student_node->first_attribute("lat")->value()), stod(student_node->first_attribute("lon")->value()), ""));
-                index_map[stoll(student_node->first_attribute("id")->value())] = nodes.size()-1;
+            if(!child_node->first_node("tag")){
+                nodes.push_back(node(stoll(child_node->first_attribute("id")->value()), stod(child_node->first_attribute("lat")->value()), stod(child_node->first_attribute("lon")->value()), ""));
+                index_map[stoll(child_node->first_attribute("id")->value())] = nodes.size()-1;
                 continue;
             }
 
             string name = "";
             //if node contains tags, we iterate over them till we find the name tag and add it to the name_mapping
-            for(xml_node<> * tag = student_node->first_node("tag"); tag; tag = tag->next_sibling()){
+            for(xml_node<> * tag = child_node->first_node("tag"); tag; tag = tag->next_sibling()){
                 if(tag->first_attribute("k")->value() == string("name")){
                     name = tag->first_attribute("v")->value();
                 }
@@ -113,20 +121,21 @@ int main(){
             }
 
             //We add node to the nodes map while maintaining the original name there
-            nodes.push_back(node(stoll(student_node->first_attribute("id")->value()), stod(student_node->first_attribute("lat")->value()), stod(student_node->first_attribute("lon")->value()), name));
-            index_map[stoll(student_node->first_attribute("id")->value())] = nodes.size()-1;
+            nodes.push_back(node(stoll(child_node->first_attribute("id")->value()), stod(child_node->first_attribute("lat")->value()), stod(child_node->first_attribute("lon")->value()), name));
+            index_map[stoll(child_node->first_attribute("id")->value())] = nodes.size()-1;
 
             //convert name to lowercase so that we can search without case sensitivity
             transform(name.begin(), name.end(), name.begin(), ::tolower);
             //if name is not empty, we add it to the name_mapping
             if(name != ""){
-                name_id_map.push_back(make_pair(name, stoll(student_node->first_attribute("id")->value())));
+                name_id_map.push_back(make_pair(name, stoll(child_node->first_attribute("id")->value())));
             }
         }
-        else if (student_node->name() == string("way")){
-            long long int id = stoll(student_node->first_attribute("id")->value());
+        else if (child_node->name() == string("way")){
+            long long int id = stoll(child_node->first_attribute("id")->value());
+            //We add way to the ways vector
             ways.push_back(way(id));
-            for(xml_node<> * nd = student_node->first_node("nd"); nd; nd = nd->next_sibling()){
+            for(xml_node<> * nd = child_node->first_node("nd"); nd; nd = nd->next_sibling()){
                 if(nd->name()!=string("nd")){
                     continue;
                 }
@@ -135,6 +144,8 @@ int main(){
             }
         }
     }
+
+    //Printing the number of nodes and ways
     cout<<"Total number of nodes: "<<nodes.size()<<endl;
     cout<<"Total number of ways: "<<ways.size()<<endl;
 
@@ -154,6 +165,7 @@ int main(){
     cout<<"Adjacency list created.\n";
 
 
+    //The main interactive part of the program that implements the user interface
     while(true){
         cout<<"\n\n\n\nWhat do you want to do?\n0. Exit\n1. Search for a place by name\n2. Search for k closest places to a given place\n3. Find shortest path between two places\nEnter your choice: ";
         int choice;
@@ -162,22 +174,32 @@ int main(){
             cout<<"Invalid choice. Please enter a valid choice.\n";
             continue;
         }
+
+        //EXITING THE PROGRAM
         if(choice==0){
             break;
         }
+
+        //Initiate a substring search for a place by name
         if(choice==1){
             cout<<"Enter the name you want to search for: ";
             string name;
             cin>>name;
+
+            //convert name to lowercase so that we can search without case sensitivity
             transform(name.begin(), name.end(), name.begin(), ::tolower);
             int matches_found = 0;
             vector<long long int> matches;
+
+            //search for the name in the name_mapping
             for(int i=0;i<name_id_map.size();i++){
                 if(name_id_map[i].first.find(name) != string::npos){
                     matches_found++;
                     matches.push_back(name_id_map[i].second);
                 }
             }
+
+            //Depending on the number of matches found, we print the results
             if(matches_found == 0){
                 cout<<"No matches found\n";
             }
@@ -192,6 +214,11 @@ int main(){
                 }
             }
         }
+
+        //Search for k closest places to a given place
+        //We sort all the remaining places according to their distance from the given place and print the k closest places
+        //Time complexity: O(nlog(n)) where n is the number of nodes
+        //Can be reduced to O(n) by using k-th order statistic but that introduces a large overhead
         if(choice==2){
             cout<<"Enter the ID of the place you want closest points from(Enter 0 to exit): ";
             long long int id;
@@ -206,6 +233,17 @@ int main(){
             cout<<"Enter the number of closest points you want to find: ";
             int k;
             cin>>k;
+            //Handling invalid inputs for k
+            if(k<=0){
+                cout<<"Invalid number of closest points. Please enter a valid number next time.\n";
+                continue;
+            }
+            if(k>nodes.size()-1){
+                cout<<"Number of closest points is greater than the number of nodes. Please enter a valid number next time.\n";
+                continue;
+            }
+
+            //We sort the remaining places according to their distance from the given place
             vector<pair<double, long long int>> distances;
             for(int i=0;i<nodes.size();i++){
                 if(nodes[i].id != id){
@@ -213,6 +251,8 @@ int main(){
                 }
             }
             sort(distances.begin(), distances.end());
+
+            //We print the k closest places
             cout<<k<<" closest points are: "<<endl;
             for(int i=0; i<k; i++){
                 cout<<i+1<<". ";
@@ -221,12 +261,17 @@ int main(){
                 }
                 cout<<"NodeID: "<<distances[i].second<<endl;
                 cout<<"Distance from the given place: "<<distances[i].first<<"meters"<<endl;
-                cout<<"Latitude: "<<nodes[index_map[distances[i].second]].lat<<endl;
-                cout<<"Longitude: "<<nodes[index_map[distances[i].second]].lon<<endl;
+                printf("Latitude: %.4f\n", nodes[index_map[distances[i].second]].lat);
+                printf("Longitude: %.4f\n", nodes[index_map[distances[i].second]].lon);
                 cout<<"\n";
             }
         }
+
+        //Find the shortest path between two places
+        //We use Uniform Cost Search to find the shortest path
+        //It is a greedy algorithm that always chooses the cheapest path from the source and adds the next closest node to a priority queue
         if(choice==3){
+            //We first ask the user to enter the source and destination
             cout<<"Enter the ID of the place you want to start from(Enter 0 to exit): ";
             long long int id1;
             cin>>id1;
@@ -247,23 +292,28 @@ int main(){
             if(!id2){
                 continue;
             }
+            //handle the case where the source and destination are the same
             if(id1 == id2){
                 cout<<"Start and end points are the same.\n";
                 continue;
             }
+
+            //Run the Uniform Cost Search algorithm
             int start_node = index_map[id1], end_node = index_map[id2];
-            vector<int> parent(nodes.size(), -1);
-            vector<double> distance(nodes.size(), LARGE_DOUBLE);
-            priority_queue<pair<double, int>, vector<pair<double, int>>, greater<pair<double, int>>> pq;
+            vector<int> parent(nodes.size(), -1);           //parent[i] stores the parent of node i so that we can reconstruct the path later
+            vector<double> distance(nodes.size(), LARGE_DOUBLE);        //distance[i] stores the distance from the source to node i
+            priority_queue<pair<double, int>, vector<pair<double, int>>, greater<pair<double, int>>> pq;    //min-heap to store the nodes with their distance from the source
             pq.push(make_pair(0.0, start_node));
-            distance[start_node] = 0.0;
+            distance[start_node] = 0.0;     //distance from the source to the source is 0
             while(!pq.empty()){
-                int closest_node = pq.top().second;
+                int closest_node = pq.top().second;     //the closest node to the source from the unvisited nodes
                 pq.pop();
-                if(closest_node == end_node){
+                if(closest_node == end_node){           //if we have reached the destination, we can stop
                     break;
                 }
                 for(int i=0;i<adj[closest_node].size();i++){
+                    //for all neighbours of the closest node, we check if the distance from the source to the neighbour is less than the distance from the source to the neighbour
+                    //if it is, we update the distance from the source to the neighbour and update the parent of the neighbour
                     if(distance[adj[closest_node][i].first] > distance[closest_node] + adj[closest_node][i].second){
                         distance[adj[closest_node][i].first] = distance[closest_node] + adj[closest_node][i].second;
                         parent[adj[closest_node][i].first] = closest_node;
@@ -271,9 +321,13 @@ int main(){
                     }
                 }
             }
+
+            //If the destination is not reachable from the source, we print an error message
             if(distance[end_node] == LARGE_DOUBLE){
                 cout<<"No path found.\n";
             }
+
+            //otherwise we print the path
             else{
                 cout<<"Path found.\n";
                 cout<<"Distance: ";
@@ -291,16 +345,32 @@ int main(){
                     path.push_back(curr_node);
                 }
                 reverse(path.begin(), path.end());
+                cout<<"Do you want to see the path?(y/n): ";
+                char choice;
+                cin>>choice;
+                if(choice != 'y' && choice != 'Y'){
+                    continue;
+                }
+                cout<<"Do you want to see details of the path?(y/n): ";
+                cin>>choice;
                 cout<<"Path: ";
                 for(int i=0; i<path.size(); i++){
-                    if(i){
-                        cout<<" -> ";
-                    }
-                    if(nodes[path[i]].name != ""){
-                        cout<<nodes[path[i]].name;
+                    if(choice!='y' && choice!='Y'){
+                        if(i){
+                            cout<<" -> ";
+                        }
+                        if(nodes[path[i]].name != ""){
+                            cout<<nodes[path[i]].name;
+                        }
+                        else{
+                            cout<<nodes[path[i]].id;
+                        }
                     }
                     else{
-                        cout<<nodes[path[i]].id;
+                        cout<<"NodeID: "<<nodes[path[i]].id<<endl;
+                        printf("Latitude: %.4f\n", nodes[path[i]].lat);
+                        printf("Longitude: %.4f\n", nodes[path[i]].lon);
+                        printf("Distance from the start place: %.4lf meters\n\n", distance[path[i]]);
                     }
                 }
                 cout<<endl;
