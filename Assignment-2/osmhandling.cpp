@@ -86,10 +86,14 @@ int main(){
     map<long long int, int> index_map;
 
 
+    //Taking the input of the osm file
+    string osm_file_name;
+    cout << "Enter the name of the osm file: ";
+    cin >> osm_file_name;
+    ifstream theFile(osm_file_name);    //opening the file
     //READING AND PARSING THE OSM FILE
     cout << "Staring the parsing of the OSM file...\n" << setprecision(10);
     // Read the sample.xml file into a buffer
-    ifstream theFile ("map.osm");
     vector<char> buffer((istreambuf_iterator<char>(theFile)), istreambuf_iterator<char>());
     buffer.push_back('\0');
     // Parse the buffer
