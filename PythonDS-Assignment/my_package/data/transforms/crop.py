@@ -1,4 +1,4 @@
-#Imports
+import numpy as np
 
 
 class CropImage(object):
@@ -12,8 +12,11 @@ class CropImage(object):
             shape: output shape of the crop (h, w)
             crop_type: center crop or random crop. Default: center
         '''
+        self.shape = shape
+        if crop_type not in ['center', 'random']:
+            raise ValueError('crop_type must be either center or random')
+        self.crop_type = crop_type
 
-        # Write your code here
 
     def __call__(self, image):
         '''
@@ -23,9 +26,13 @@ class CropImage(object):
             Returns:
             image (numpy array or PIL image)
         '''
-
-        # Write your code here
-
-        
-
- 
+        height, width = self.shape
+        if (self.shape[0] > image.shape[0]) or (self.shape[1] > image.shape[1]):
+            raise ValueError('Crop shape must be smaller than image shape')
+        if self.crop_type == 'center':
+            y = int((image.shape[0] - height) / 2)
+            x = int((image.shape[1] - width) / 2)
+        else:
+            y = np.random.randint(0, image.shape[0] - height)
+            x = np.random.randint(0, image.shape[1] - width)
+        return image[y:y + height, x:x + width]

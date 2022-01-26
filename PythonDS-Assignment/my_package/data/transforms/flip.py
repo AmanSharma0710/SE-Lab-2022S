@@ -1,4 +1,4 @@
-#Imports
+import numpy as np
 
 
 class FlipImage(object):
@@ -11,8 +11,9 @@ class FlipImage(object):
             Arguments:
             flip_type: 'horizontal' or 'vertical' Default: 'horizontal'
         '''
-
-        # Write your code here
+        if flip_type not in ['horizontal', 'vertical']:
+            raise ValueError('flip_type must be either horizontal or vertical')
+        self.flip_type = flip_type
 
         
     def __call__(self, image):
@@ -23,7 +24,9 @@ class FlipImage(object):
             Returns:
             image (numpy array or PIL image)
         '''
-
-        # Write your code here
+        if self.flip_type == 'horizontal':
+            return np.fliplr(image)
+        else:
+            return np.flipud(image)
 
        
