@@ -1,4 +1,6 @@
-#Imports
+import json
+import numpy as np
+from PIL import Image
 
 
 class Dataset(object):
@@ -13,6 +15,11 @@ class Dataset(object):
             transforms: list of transforms (class instances)
                         For instance, [<class 'RandomCrop'>, <class 'Rotate'>]
         '''
+        self.annotations_path = annotation_file
+        with open(annotation_file) as file:
+            list_of_annotations = [json.loads(line) for line in file]
+        self.annotations = list_of_annotations
+        self.transforms = transforms
         
         
 
@@ -20,6 +27,7 @@ class Dataset(object):
         '''
             return the number of data points in the dataset
         '''
+        return len(self.annotations)
         
 
     def __getitem__(self, idx):
@@ -45,4 +53,28 @@ class Dataset(object):
             5. Return the dictionary of the transformed image and annotations as specified.
         '''
 
+        annotation = self.annotations[idx]
+
+        path_to_dir = self.annotations_path.replace('annotations.jsonl', '')
+        image_path = path_to_dir + annotation['img_fn']
+        image = np.array(Image.open(image_path))
+
+        #Perform the desired transformations on the image.
+        if self.transforms:
+            for transform in self.transforms:
+                image = transform(image)
+        
+        #Scale the values in the arrays to be with [0, 1].
+        image = image.transpose((2, 0, 1))
+        image = image / 255.0
+
+        gt_png_ann = np.array(Image.open(path_to_dir + annotation['png_ann_fn']))
+        gt_png_ann = gt_png_ann[..., np.newaxis].transpose((2, 0, 1))
+        gt_png_ann = gt_png_ann / 255.0
+
+        print(image.shape)
+        print(gt_png_ann.shape)
+
+        #Return the dictionary of the transformed image and annotations as specified.
+        return {'image': image, 'gt_png_ann': gt_png_ann, 'gt_bboxes': annotation['bboxes']}
         
