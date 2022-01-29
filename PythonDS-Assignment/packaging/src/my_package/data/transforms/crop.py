@@ -33,6 +33,12 @@ class CropImage(object):
             y = int((image.shape[0] - height) / 2)
             x = int((image.shape[1] - width) / 2)
         else:
-            y = np.random.randint(0, image.shape[0] - height)
-            x = np.random.randint(0, image.shape[1] - width)
+            if (image.shape[0] - height)==0:
+                y = 0
+            else:
+                y = np.random.randint(0, image.shape[0] - height)
+            if (image.shape[1] - width)==0:
+                x = 0
+            else:
+                x = np.random.randint(0, image.shape[1] - width)
         return image[y:y + height, x:x + width]

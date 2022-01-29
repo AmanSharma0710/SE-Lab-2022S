@@ -35,7 +35,7 @@ class RescaleImage(object):
                 new_h = self.output_size
                 new_w = int(w*self.output_size/h)
             image1 = Image.fromarray(image)
-            image1 = image1.resize((new_w, new_h))
+            image1 = image1.resize((new_h, new_w))
             return np.array(image1)
         else:
             image1 = Image.fromarray(image)

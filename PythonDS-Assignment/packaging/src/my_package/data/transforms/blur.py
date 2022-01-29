@@ -1,7 +1,7 @@
 from PIL import Image, ImageFilter
 import numpy as np
 
-class GaussBlurImage(object):
+class BlurImage(object):
     '''
         Applies Gaussian Blur on the image.
     '''

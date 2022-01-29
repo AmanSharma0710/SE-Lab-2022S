@@ -71,10 +71,12 @@ class Dataset(object):
         gt_png_ann = np.array(Image.open(path_to_dir + annotation['png_ann_fn']))
         gt_png_ann = gt_png_ann[..., np.newaxis].transpose((2, 0, 1))
         gt_png_ann = gt_png_ann / 255.0
-
-        #print(image.shape)
-        #print(gt_png_ann.shape)
+        
+        gt_bboxes = []
+        for i in range(len(annotation['bboxes'])):
+          gt_bboxes.append([annotation['bboxes'][i]['category'], annotation['bboxes'][i]['bbox'][0], annotation['bboxes'][i]['bbox'][1], annotation['bboxes'][i]['bbox'][2] + annotation['bboxes'][i]['bbox'][0], annotation['bboxes'][i]['bbox'][1]+ annotation['bboxes'][i]['bbox'][3]])
+        gt_bboxes = np.array(gt_bboxes)
 
         #Return the dictionary of the transformed image and annotations as specified.
-        return {'image': image, 'gt_png_ann': gt_png_ann, 'gt_bboxes': annotation['bboxes']}
+        return {'image': image, 'gt_png_ann': gt_png_ann, 'gt_bboxes': gt_bboxes}
         
