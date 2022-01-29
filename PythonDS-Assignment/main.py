@@ -30,7 +30,7 @@ def experiment(annotation_file, segmentor, transforms, outputs):
 
 def main():
     segmentor = InstanceSegmentationModel()
-    experiment('./data/annotations.jsonl', segmentor, [FlipImage(), BlurImage(1)], "./outputs/imgs")
+    experiment('./data/annotations.jsonl', segmentor, [], "./outputs/imgs")
 
     #Import image 3 for roll number 20CS30063
     image_to_analyse = np.array(Image.open('./data/imgs/3.jpg'))
