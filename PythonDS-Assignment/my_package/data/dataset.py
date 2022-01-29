@@ -72,8 +72,8 @@ class Dataset(object):
         gt_png_ann = gt_png_ann[..., np.newaxis].transpose((2, 0, 1))
         gt_png_ann = gt_png_ann / 255.0
 
-        print(image.shape)
-        print(gt_png_ann.shape)
+        #print(image.shape)
+        #print(gt_png_ann.shape)
 
         #Return the dictionary of the transformed image and annotations as specified.
         return {'image': image, 'gt_png_ann': gt_png_ann, 'gt_bboxes': annotation['bboxes']}
