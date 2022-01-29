@@ -32,6 +32,8 @@ def main():
     segmentor = InstanceSegmentationModel()
     experiment('./data/annotations.jsonl', segmentor, [], "./outputs/imgs")
 
+    #The code below is for part 2 of the analysis task and can be commented out if just the above function is needed
+
     #Import image 3 for roll number 20CS30063
     image_to_analyse = np.array(Image.open('./data/imgs/3.jpg'))
     #make a list of all the transformations
