@@ -31,7 +31,7 @@ def fileClick(clicked, dataset, segmentor, e, root):
         return
     nameOfImage = getFile.split("/")[-1]
     e.delete(0, END)
-    e.insert(0, nameOfImage)
+    e.insert(0, "Image " + nameOfImage.split(".")[0])
     index = 0
     for i in dataset.annotations:
         if(i["img_fn"].split("/")[-1] == nameOfImage):
@@ -62,8 +62,8 @@ def process(clicked, e, root):
         return
     global input_image, output_segmentation, output_bb, img1, img2
     input_image1 = PIL.ImageTk.PhotoImage(PIL.Image.fromarray(input_image))
-    img1.grid_forget()
-    img2.grid_forget()
+    img1.grid_remove()
+    img2.grid_remove()
     img1 = Label(root, image=input_image1)
     img1.image = input_image1
     img1.grid(row=1, column=0, ipady=5, columnspan=4)
@@ -120,5 +120,14 @@ if __name__ == '__main__':
     myButton = Button(root, text="Process", command= lambda: process(clicked, e, root))
     myButton.grid(row=0, column=3)
 
+    # Declare the Labels in the starting so that it is easier to remove from the grid
+    blank_image = np.zeros((1,1,3), np.uint8)
+    input_image1 = PIL.ImageTk.PhotoImage(PIL.Image.fromarray(blank_image))
+    img1 = Label(root, image=input_image1)
+    img1.image = input_image1
+    img1.grid(row=1, column=0, columnspan=4)
+    img2 = Label(root, image=input_image1)
+    img2.image = input_image1
+    img2.grid(row=1, column=4, ipadx=0)
 
     root.mainloop()
