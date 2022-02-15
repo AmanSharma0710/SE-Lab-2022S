@@ -4,7 +4,7 @@ from my_package.model import InstanceSegmentationModel
 from my_package.data import Dataset
 from my_package.analysis import plot_visualization
 from my_package.data.transforms import FlipImage, RescaleImage, BlurImage, CropImage, RotateImage
-from PIL import Image
+import PIL.Image, PIL.ImageTk
 
 ####### ADD THE ADDITIONAL IMPORTS FOR THIS ASSIGNMENT HERE #######
 from tkinter import *
@@ -22,9 +22,12 @@ def fileClick(clicked, dataset, segmentor, e, root):
     # To have a better clarity, please check out the sample video.
     global input_image, output_segmentation, output_bb
     directory = "./data/"
-    getFile = filedialog.askopenfilename(title="Select Image", defaultextension=".jpg", filetypes=[("Image Files", "*.jpg")], initialdir=directory)
-    if(getFile == ""):
+    getFile = filedialog.askopenfilename(title="Select Image", defaultextension=".jpg", filetypes=[("Image Files", "*.jpg")], initialdir=directory+'imgs/')
+    if(getFile == None and e.get() == ""):
         print("No file selected!")
+        return
+    #Handling the case when the user cancels file selection but an image is already selected.
+    if(getFile == ""):
         return
     nameOfImage = getFile.split("/")[-1]
     e.delete(0, END)
@@ -34,13 +37,13 @@ def fileClick(clicked, dataset, segmentor, e, root):
         if(i["img_fn"].split("/")[-1] == nameOfImage):
             print(i)
             print(directory)
-            print("Image shape: ", Image.open(directory + i["img_fn"]).size)
-            print("PNG Annotation shape: ", Image.open(directory + i["png_ann_fn"]).size)
+            print("Image shape: ", np.array(PIL.Image.open(directory + i["img_fn"])).shape)
+            print("PNG Annotation shape: ", np.array(PIL.Image.open(directory + i["png_ann_fn"])).shape)
             break
         index += 1
     image = dataset[index]["image"]
     pred_boxes, pred_masks, pred_labels, pred_scores = segmentor(image)
-    input_image = Image.open(directory + i["img_fn"])
+    input_image = np.array(PIL.Image.open(directory + i["img_fn"]))
     output_segmentation = plot_visualization(image, pred_boxes, pred_masks, pred_labels, pred_scores, addBoundingBoxes=False)
     output_bb = plot_visualization(image, pred_boxes, pred_masks, pred_labels, pred_scores, addMasks=False)
     process(clicked, e, root)
@@ -57,14 +60,25 @@ def process(clicked, e, root):
     if (e.get() == ""):
         print("No file selected!")
         return
-    img1 = Label(root, image=input_image)
-    img1.grid(row=1, column=0, ipadx=15, ipady=5)
+    global input_image, output_segmentation, output_bb, img1, img2
+    input_image1 = PIL.ImageTk.PhotoImage(PIL.Image.fromarray(input_image))
+    img1.grid_forget()
+    img2.grid_forget()
+    img1 = Label(root, image=input_image1)
+    img1.image = input_image1
+    img1.grid(row=1, column=0, ipady=5, columnspan=4)
+    extrawidth = root.bbox(0,0,3,0)[2]-input_image.shape[1]
+    extrawidth = int(extrawidth/2)
     if (clicked.get() == "Segmentation"):
-        img2 = Label(root, image=output_segmentation)
-        img2.grid(row=1, column=1, ipadx=15, ipady=5)
+        output_segmentation1 = PIL.ImageTk.PhotoImage(PIL.Image.fromarray(output_segmentation))
+        img2 = Label(root, image=output_segmentation1)
+        img2.image = output_segmentation1
+        img2.grid(row=1, column=4, ipady=5, ipadx=extrawidth)
     else:
-        img2 = Label(root, image=output_bb)
-        img2.grid(row=1, column=1, ipadx=15, ipady=5)
+        output_bb1 = PIL.ImageTk.PhotoImage(PIL.Image.fromarray(output_bb))
+        img2 = Label(root, image=output_bb1)
+        img2.image = output_bb1
+        img2.grid(row=1, column=4, ipady=5, ipadx=extrawidth)
     ####### CODE REQUIRED (END) #######
 
 # `main` function definition starts from here.
@@ -82,6 +96,7 @@ if __name__ == '__main__':
     segmentor = InstanceSegmentationModel()
     # Instantiate the dataset.
     dataset = Dataset(annotation_file, transforms=transforms)
+    print("Length of dataset: ", len(dataset))
 
 
     options = ["Segmentation", "Bounding-box"]

@@ -39,16 +39,18 @@ def plot_visualization(image, pred_boxes, pred_masks, pred_class, pred_score, sa
     (x1, y1), (x2, y2) = pred_boxes[i]
     name = pred_class[i]
     confidence = pred_score[i]
-    image = cv2.rectangle(image, (x1, y1), (x2, y2), color, 1)
-
-    image = cv2.putText(image, '{}, {:.2f}%'.format(name, confidence*100), ((int)(x1+1), (int)(y1+11)), cv2.FONT_HERSHEY_DUPLEX, 0.4, color, 1, cv2.LINE_AA)
-    #to get labels outside the bounding box uncomment the following line and comment the line above
-    #image = cv2.putText(image, '{}, {:.2f}%'.format(name, confidence*100), (x,y), cv2.FONT_HERSHEY_DUPLEX, 0.4, color, 1, cv2.LINE_AA)
+    if addBoundingBoxes:
+      image = cv2.rectangle(image, (x1, y1), (x2, y2), color, 1)
+      image = cv2.putText(image, '{}, {:.2f}%'.format(name, confidence*100), ((int)(x1+1), (int)(y1+11)), cv2.FONT_HERSHEY_DUPLEX, 0.4, color, 1, cv2.LINE_AA)
+      #to get labels outside the bounding box uncomment the following line and comment the line above
+      #image = cv2.putText(image, '{}, {:.2f}%'.format(name, confidence*100), (x,y), cv2.FONT_HERSHEY_DUPLEX, 0.4, color, 1, cv2.LINE_AA)
     
     mask = pred_masks[i][0, :, :]
     mask = np.stack((color[0]*mask, color[1]*mask, color[2]*mask), axis=-1).astype(np.uint8)
     masks = cv2.addWeighted(mask, 0.5, masks, 1, 0)
-  image = cv2.addWeighted(masks, 0.95, image, 1, 0)
+  #add the masks on top of the image
+  if addMasks:
+    image = cv2.addWeighted(masks, 0.95, image, 1, 0)
 
   if show_image:
     plt.imshow(image)
