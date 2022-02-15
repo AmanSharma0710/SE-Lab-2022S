@@ -23,11 +23,10 @@ def fileClick(clicked, dataset, segmentor, e, root):
     global input_image, output_segmentation, output_bb
     directory = "./data/"
     getFile = filedialog.askopenfilename(title="Select Image", defaultextension=".jpg", filetypes=[("Image Files", "*.jpg")], initialdir=directory+'imgs/')
-    if(getFile == None and e.get() == ""):
-        print("No file selected!")
-        return
-    #Handling the case when the user cancels file selection but an image is already selected.
-    if(getFile == ""):
+    #Handling the case when no file is selected after opening the dialog and cancel is pressed
+    if(getFile == () or getFile == ""):
+        if(e.get()==""):
+            print("No file selected!")
         return
     nameOfImage = getFile.split("/")[-1]
     e.delete(0, END)
